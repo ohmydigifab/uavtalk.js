@@ -347,7 +347,7 @@ function UavtalkObjectManager(objpath) {
 			}
 			requested[object_id].push(callback);
 			if (self.output_stream) {
-				self.output_stream(packetHandler.pack(packetHandler.getRequestPacket(object_id)));
+				self.output_stream(packetHandler.getRequestPacket(object_id));
 			}
 		},
 		updateInstance : function(obj) {
