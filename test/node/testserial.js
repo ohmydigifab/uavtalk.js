@@ -19,7 +19,8 @@ function getBlankGtsObj() {
 	gtsObj.RxSyncErrors = 0;
 	gtsObj.RxCrcErrors = 0;
 	gtsObj.Status = 0;
-	gtsObj.object_id = objMan.getObjectId("GCSTelemetryStats");
+	gtsObj.name = "GCSTelemetryStats";	
+	gtsObj.object_id = objMan.getObjectId(gtsObj.name);
 	return gtsObj;
 }
 
@@ -32,6 +33,7 @@ async.waterfall([ function(callback) {
 		baudrate : 57600
 	});
 	objMan.output_stream = function(data) {
+		console.log("data");
 		console.log(data);
 		sp.write(data, function() {
 			sp.drain();
@@ -57,7 +59,7 @@ async.waterfall([ function(callback) {
 			objMan.updateObject(gtsObj);
 		}
 		else if (ftsObj.Status == 2) {
-			gtsObj.Status = 1;
+			gtsObj.Status = 2;
 			console.log(gtsObj);
 			objMan.updateObject(gtsObj);
 		}
