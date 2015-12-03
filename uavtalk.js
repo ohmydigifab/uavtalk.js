@@ -208,7 +208,7 @@ function UavtalkObjectManager(objpath) {
 
 	var warned = {};
 
-	return {
+	var self = {
 		ready : function() {
 			return ready;
 		},
@@ -216,10 +216,10 @@ function UavtalkObjectManager(objpath) {
 		},
 		input_stream : function() {
 			return packetHandler.unpack(function(packet) {
-				if (!this.ready()) {
+				if (!self.ready()) {
 					return;
 				}
-				var data = this.decode(packet);
+				var data = self.decode(packet);
 				if (!data) {
 					return;
 				}
@@ -265,6 +265,7 @@ function UavtalkObjectManager(objpath) {
 			}
 		}
 	}
+	return self;
 }
 
 module.exports = {
