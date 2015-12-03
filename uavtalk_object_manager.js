@@ -1,7 +1,7 @@
 // This module decodes a discrete UAV packet.
 
-var _ = require('underscore');
-var bufferpack = require('bufferpack');
+include('underscore-min.js');
+include('bufferpack.js');
 
 function endsWith(str, suffix) {
 	return str.indexOf(suffix, str.length - suffix.length) !== -1;
