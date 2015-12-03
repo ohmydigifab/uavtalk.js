@@ -285,7 +285,11 @@ function UavtalkObjectManager(objpath) {
 			console.log("Couldn't pack " + objdef.name);
 			return null;
 		}
-		return packed;
+		var buffer = new Buffer(packed.length);
+		for ( var i = 0; i < buffer.length; i++) {
+			buffer[i] = packed[i];
+		}
+		return buffer;
 	}
 
 	var warned = {};
@@ -349,8 +353,7 @@ function UavtalkObjectManager(objpath) {
 				}
 				return null;
 			} else {
-				var packed = pack_obj(objdef, obj);
-				return packed;
+				return pack_obj(objdef, obj);
 			}
 		},
 		getObject : function(object_id) {
