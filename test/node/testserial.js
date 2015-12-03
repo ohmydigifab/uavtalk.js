@@ -39,7 +39,9 @@ async.waterfall([ function(callback) {
 	ftsObj = obj;
 	console.log(ftsObj);
 	if (ftsObj && ftsObj.Status == 0) {
-		gtsObj.Status == 1;
+		gtsObj.Status = 1;
+		gtsObj.TxDataRate = 0;
+		gtsObj.RxDataRate = 0;
 		objMan.updateObject(gtsObj);
 	}
 	objMan.requestObject("FlightTelemetryStats", function(obj) {
