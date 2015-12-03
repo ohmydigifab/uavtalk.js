@@ -13,7 +13,7 @@ objMan.init(function() {
 			sp.drain();
 		});
 	}
-	sp.on("data", objMan.input_stream());
+	sp.on("data", objMan.input_stream);
 	sp.on("open", function() {
 
 		objMan.requestInstance("GCSTelemetryStats", function(gtsObj) {

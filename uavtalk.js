@@ -306,32 +306,30 @@ function UavtalkObjectManager(objpath) {
 		},
 		output_stream : function(data) {
 		},
-		input_stream : function() {
-			return packetHandler.unpack(function(packet) {
-				if (!self.ready()) {
-					return;
-				}
-				var instance = self.decode(packet);
-				if (!instance) {
-					return;
-				}
-				var obj = uavobjects[instance.object_id];
-				if (!obj) {
-					return;
-				}
-				obj.instance = instance;
+		input_stream : packetHandler.unpack(function(packet) {
+			if (!self.ready()) {
+				return;
+			}
+			var instance = self.decode(packet);
+			if (!instance) {
+				return;
+			}
+			var obj = uavobjects[instance.object_id];
+			if (!obj) {
+				return;
+			}
+			obj.instance = instance;
 
-				console.log(obj.name);
+			console.log(obj.name);
 
-				if (request_id == instance.object_id) {
-					var callback = request_callback;
-					request_id = null;
-					request_callback = null;
-					if(callback)
-						callback(instance);
-				}
-			});
-		},
+			if (request_id == instance.object_id) {
+				var callback = request_callback;
+				request_id = null;
+				request_callback = null;
+				if (callback)
+					callback(instance);
+			}
+		}),
 		decode : function(packet) {
 			var obj = uavobjects[packet.object_id];
 			if (!obj) {
