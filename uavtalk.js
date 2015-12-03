@@ -100,10 +100,7 @@ function UavtalkPacketHandler() {
 		getRequestPacket : function(object_id) {
 			return this.getPacket(TYPE_OBJ_REQ, object_id, null);
 		},
-		pack : function(obj) {
-			var headerbuffer = new Buffer(10);
-		},
-		unpack : function(callback) {
+		getParser : function(callback) {
 			var headerbuffer = new Buffer(12);
 			var headerbufferlen = 0;
 			var databuffer = null;
@@ -272,24 +269,20 @@ function UavtalkObjectManager(objpath) {
 		});
 	}
 
-	function unpack_obj(obj, data) {
+	function unpack_obj(objdef, data) {
 		var out = {};
-		var unpacked = bufferpack.unpack(obj.unpackstr, data);
+		var unpacked = bufferpack.unpack(objdef.unpackstr, data);
 		if (!unpacked) {
-			console.log("Couldn't unpack " + obj.name);
+			console.log("Couldn't unpack " + objdef.name);
 			return null;
 		}
 		return unpacked;
-		// _.each(obj.fields, function(f, index) {
-		// out[f.name] = unpacked[index];
-		// });
-		// return out;
 	}
 
-	function pack_obj(obj, data) {
-		var packed = bufferpack.pack(obj.unpackstr, data);
+	function pack_obj(objdef, obj) {
+		var packed = bufferpack.pack(objdef.unpackstr, obj);
 		if (!packed) {
-			console.log("Couldn't pack " + obj.name);
+			console.log("Couldn't pack " + objdef.name);
 			return null;
 		}
 		return packed;
@@ -306,11 +299,11 @@ function UavtalkObjectManager(objpath) {
 		},
 		output_stream : function(data) {
 		},
-		input_stream : packetHandler.unpack(function(packet) {
+		input_stream : packetHandler.getParser(function(packet) {
 			if (!self.ready()) {
 				return;
 			}
-			var instance = self.decode(packet);
+			var instance = self.deserialize(packet.object_id, packet.data);
 			if (!instance) {
 				return;
 			}
@@ -330,33 +323,33 @@ function UavtalkObjectManager(objpath) {
 					callback(instance);
 			}
 		}),
-		decode : function(packet) {
-			var obj = uavobjects[packet.object_id];
-			if (!obj) {
-				if (!warned[packet.object_id]) {
+		deserialize : function(object_id, data) {
+			var objdef = uavobjects[object_id];
+			if (!objdef) {
+				if (!warned[object_id]) {
 					console.log("JSON Failed to find object");
-					console.log(packet);
-					warned[packet.object_id] = true;
+					console.log(object_id);
+					warned[object_id] = true;
 				}
 				return null;
 			} else {
-				var objdata = unpack_obj(obj, packet.data);
-				objdata.name = obj.name;
-				objdata.object_id = packet.object_id;
+				var objdata = unpack_obj(objdef, data);
+				objdata.name = objdef.name;
+				objdata.object_id = object_id;
 				return objdata;
 			}
 		},
-		encode : function(data) {
-			var obj = uavobjects[data.object_id];
-			if (!obj) {
-				if (!warned[packet.object_id]) {
+		serialize : function(obj) {
+			var objdef = uavobjects[obj.object_id];
+			if (!objdef) {
+				if (!warned[obj.object_id]) {
 					console.log("JSON Failed to find object");
 					console.log(packet);
-					warned[packet.object_id] = true;
+					warned[obj.object_id] = true;
 				}
 				return null;
 			} else {
-				var packed = pack_obj(obj, data);
+				var packed = pack_obj(objdef, obj);
 				return packed;
 			}
 		},
@@ -364,18 +357,18 @@ function UavtalkObjectManager(objpath) {
 			if (typeof (object_id) == 'string') {
 				object_id = uavobject_name_index[object_id];
 			}
-			var obj = uavobjects[object_id];
-			if (!obj) {
+			var objdef = uavobjects[object_id];
+			if (!objdef) {
 				return null;
 			}
-			return obj.instance;
+			return objdef.instance;
 		},
 		requestObject : function(object_id, callback) {
 			if (typeof (object_id) == 'string') {
 				object_id = uavobject_name_index[object_id];
 			}
-			var obj = uavobjects[object_id];
-			if (!obj) {
+			var objdef = uavobjects[object_id];
+			if (!objdef) {
 				return null;
 			}
 
@@ -395,8 +388,9 @@ function UavtalkObjectManager(objpath) {
 			request_func();
 		},
 		updateObject : function(obj) {
+			var data = self.serialize(obj)
 			if (self.output_stream) {
-				self.output_stream(packetHandler.pack(obj));
+				self.output_stream(packetHandler.getPacket(TYPE_OBJ, request_id, data));
 			}
 		}
 	}

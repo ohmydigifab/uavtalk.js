@@ -4,6 +4,8 @@ var EventEmitter = require('events').EventEmitter;
 var SerialPort = require("serialport").SerialPort;
 
 var objMan = new Uavtalk.ObjectManager("./openpilot_definitions");
+var gtsObj;
+var ftsObj;
 
 async.waterfall([ function(callback) {
 	objMan.init(function() {
@@ -27,12 +29,14 @@ async.waterfall([ function(callback) {
 	objMan.requestObject("GCSTelemetryStats", function(obj) {
 		callback(null, obj);
 	});
-}, function(gtsObj, callback) {
+}, function(obj, callback) {
+	gtsObj = obj;
 	console.log(gtsObj);
 	objMan.requestObject("FlightTelemetryStats", function(obj) {
 		callback(null, obj);
 	});
-}, function(ftsObj, callback) {
+}, function(obj, callback) {
+	ftsObj = obj;
 	console.log(ftsObj);
 	if (ftsObj && ftsObj.Status == 0) {
 		gtsObj.Status == 1;
