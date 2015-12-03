@@ -1,6 +1,6 @@
 var EventEmitter = require('events').EventEmitter;
-var UavtalkPacketHandler = require("./uavtalk_packet_handler").UavtalkPacketHandler;
-var UavtalkObjectManager = require("./uavtalk_object_manager").UavtalkObjectManager;
+var UavtalkPacketHandler = require("../../uavtalk_packet_handler").UavtalkPacketHandler;
+var UavtalkObjectManager = require("../../uavtalk_object_manager").UavtalkObjectManager;
 var SerialPort = require("serialport").SerialPort;
 
 var cc3d_serial = new SerialPort("/dev/ttyAMA0", {
