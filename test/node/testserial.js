@@ -42,12 +42,12 @@ async.waterfall([ function(callback) {
 		gtsObj.Status == 1;
 		objMan.updateObject(gtsObj);
 	}
-	objMan.requestObject("GCSTelemetryStats", function(obj) {
+	objMan.requestObject("FlightTelemetryStats", function(obj) {
 		callback(null, obj);
 	});
 }, function(obj, callback) {
-	gtsObj = obj;
-	console.log(gtsObj);
+	ftsObj = obj;
+	console.log(ftsObj);
 	callback(null);
 } ], function(err, result) {
 
