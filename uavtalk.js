@@ -346,13 +346,13 @@ function UavtalkObjectManager(objpath) {
 				requested[object_id] = [];
 			}
 			requested[object_id].push(callback);
-			if (output_stream) {
-				output_stream(packetHandler.pack(packetHandler.getRequestPacket(object_id)));
+			if (self.output_stream) {
+				self.output_stream(packetHandler.pack(packetHandler.getRequestPacket(object_id)));
 			}
 		},
 		updateInstance : function(obj) {
-			if (output_stream) {
-				output_stream(packetHandler.pack(obj));
+			if (self.output_stream) {
+				self.output_stream(packetHandler.pack(obj));
 			}
 		}
 	}
