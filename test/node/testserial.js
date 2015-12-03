@@ -7,17 +7,18 @@ var serial = new SerialPort("/dev/ttyAMA0", {
 });
 
 var objMan = Uavtalk.ObjectManager("./openpilot_definitions");
-objMan.output_stream = function(data)
-{
+objMan.output_stream = function(data) {
+	console.log(data);
 	serial.write(data);
 }
 serial.on("open", function() {
 	serial.on("data", objMan.input_stream());
 
 	var gtsObj = objMan.getInstance("GCSTelemetryStats");
-	var ftsObj = objMan.getInstance("FlightTelemetryStats");
-	if (ftsObj && ftsObj.Status == 0) {
-		gtsObj.Status == 1;
-		objMan.updateInstance(gtsObj);
-	}
+	objMan.requestInstance("FlightTelemetryStats", function(ftsObj) {
+		if (ftsObj && ftsObj.Status == 0) {
+			gtsObj.Status == 1;
+			objMan.updateInstance(gtsObj);
+		}
+	});
 });

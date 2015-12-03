@@ -7,6 +7,25 @@
 var _ = require('underscore');
 var bufferpack = require('bufferpack');
 
+var SYNC = 0x3C;
+var VERSION_MASK = 0xFC;
+var VERSION = 0x20;
+var TYPE_MASK = 0x03;
+var TYPE_OBJ = 0x00;
+var TYPE_OBJ_REQ = 0x01;
+var TYPE_OBJ_ACK = 0x02;
+var TYPE_ACK = 0x03;
+
+var MIN_HEADER_LENGTH = 10;// # sync(1), type (1), size(2), object ID(4),
+// instance ID(2)
+var MAX_HEADER_LENGTH = 12;// # sync(1), type (1), size(2), object ID (4),
+// instance ID(2), TIMESTAMP(2 not used in single
+// objects)
+
+var MAX_PAYLOAD_LENGTH = 255;//
+var CHECKSUM_LENGTH = 1;//
+var MAX_PACKET_LENGTH = (MAX_HEADER_LENGTH + MAX_PAYLOAD_LENGTH + CHECKSUM_LENGTH);//
+
 var types = {
 	0x0 : "OBJ",
 	0x1 : "OBJ_REQ",
@@ -17,8 +36,37 @@ var types = {
 
 function UavtalkPacketHandler() {
 	return {
-		pack : function(obj) {
+		getPacket : function(type, objId, data) {
+			
+			header = new Buffer([ SYNC, type | VERSION, 0, 0, 0, 0, 0, 0 ]);
 
+			length = MIN_HEADER_LENGTH;
+			if (data != null) {
+				length += data.length;
+			}
+			header[2] = length & 0xFF;
+			header[3] = (length >> 8) & 0xFF;
+			// for i in xrange(4,8):
+			// header[i] = objId & 0xff
+			// objId >>= 8
+
+			// crc = Crc()
+			// crc.addList(header)
+			// self.stream.write("".join(map(chr,header)))
+
+			// if data != None:
+			// crc.addList(data)
+			// self.stream.write("".join(map(chr,data)))
+			//	        
+			// self.stream.write(chr(crc.read()))
+
+			return header;
+		},
+		getRequestPacket : function(objId) {
+			this.getPacket(TYPE_OBJ_REQ, objId, null);
+		},
+		pack : function(obj) {
+			var headerbuffer = new Buffer(10);
 		},
 		unpack : function(callback) {
 			var headerbuffer = new Buffer(12);
@@ -44,11 +92,11 @@ function UavtalkPacketHandler() {
 					// datalen: " + datalen);
 					if (state === 0) {
 						// sync
-						if (data[index] !== 0x3c) {
+						if (data[index] !== SYNC) {
 							console.error("Missed sync");
 							++index;
 						} else {
-							headerbuffer[0] = 0x3c;
+							headerbuffer[0] = SYNC;
 							headerbufferlen = 1;
 							++state;
 							++index;
@@ -115,6 +163,7 @@ function UavtalkObjectManager(objpath) {
 	var path = require('path');
 
 	var uavobjects = {}
+	var uavobject_name_index = {}
 	var ready = false;
 
 	fs.readdir(objpath, function(err, files) {
@@ -176,6 +225,7 @@ function UavtalkObjectManager(objpath) {
 				});
 				json.unpackstr = unpackstr;
 				uavobjects[json.object_id] = json;
+				uavobject_name_index[json.name] = json.object_id;
 				checkdone();
 			});
 		});
@@ -207,6 +257,7 @@ function UavtalkObjectManager(objpath) {
 	}
 
 	var warned = {};
+	var requested = {};
 
 	var self = {
 		ready : function() {
@@ -219,12 +270,19 @@ function UavtalkObjectManager(objpath) {
 				if (!self.ready()) {
 					return;
 				}
-				var data = self.decode(packet);
-				if (!data) {
+				var instance = self.decode(packet);
+				if (!instance) {
 					return;
 				}
-				console.log(data.name);
-				// dataemitter.emit(data.name,data);
+				var obj = uavobjects[instance.object_id];
+				obj.instance = instance;
+
+				if (requested[instance.object_id]) {
+					_.each(requested[instance.object_id], function(callback) {
+						callback(instance);
+					});
+					delete requested[instance.object_id];
+				}
 			});
 		},
 		decode : function(packet) {
@@ -257,11 +315,34 @@ function UavtalkObjectManager(objpath) {
 			}
 		},
 		getInstance : function(objId) {
-			return null;
+			if (typeof (objId) == 'string') {
+				objId = uavobject_name_index[objId];
+			}
+			var obj = uavobjects[objId];
+			if (!obj) {
+				return null;
+			}
+			return obj.instance;
+		},
+		requestInstance : function(objId, callback) {
+			if (typeof (objId) == 'string') {
+				objId = uavobject_name_index[objId];
+			}
+			var obj = uavobjects[objId];
+			if (!obj) {
+				return null;
+			}
+			if (requested[objId] == null) {
+				requested[objId] = [];
+			}
+			requested[objId].push(callback);
+			if (output_stream) {
+				output_stream(packetHandler.pack(packetHandler.getRequestPacket(objId)));
+			}
 		},
 		updateInstance : function(obj) {
 			if (output_stream) {
-				output_stream(packetHandler.pack(gtsObj));
+				output_stream(packetHandler.pack(obj));
 			}
 		}
 	}
