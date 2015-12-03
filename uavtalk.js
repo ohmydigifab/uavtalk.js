@@ -63,7 +63,7 @@ function UavtalkPacketHandler() {
 			return header;
 		},
 		getRequestPacket : function(object_id) {
-			this.getPacket(TYPE_OBJ_REQ, object_id, null);
+			return this.getPacket(TYPE_OBJ_REQ, object_id, null);
 		},
 		pack : function(obj) {
 			var headerbuffer = new Buffer(10);

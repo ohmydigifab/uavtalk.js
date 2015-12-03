@@ -15,12 +15,15 @@ objMan.init(function() {
 	serial.on("data", objMan.input_stream());
 	serial.on("open", function() {
 
-		var gtsObj = objMan.getInstance("GCSTelemetryStats");
-		objMan.requestInstance("FlightTelemetryStats", function(ftsObj) {
-			if (ftsObj && ftsObj.Status == 0) {
-				gtsObj.Status == 1;
-				objMan.updateInstance(gtsObj);
-			}
+		objMan.requestInstance("GCSTelemetryStats", function(gtsObj) {
+			console.log(gtsObj);
+			objMan.requestInstance("FlightTelemetryStats", function(ftsObj) {
+				console.log(ftsObj);
+				if (ftsObj && ftsObj.Status == 0) {
+					gtsObj.Status == 1;
+					objMan.updateInstance(gtsObj);
+				}
+			});
 		});
 	});
 });
