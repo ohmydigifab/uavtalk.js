@@ -80,9 +80,10 @@ function UavtalkPacketHandler() {
 
 			header[2] = length & 0xFF;
 			header[3] = (length >> 8) & 0xFF;
-			// for i in xrange(4,8):
-			// header[i] = object_id & 0xff
-			// object_id >>= 8
+			for ( var i = 4; i < 8; i++) {
+				header[i] = object_id & 0xff;
+				object_id >>= 8;
+			}
 
 			buffer.copy(header, 0, header.length);
 
