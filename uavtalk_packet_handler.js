@@ -4,8 +4,8 @@
 // which will then decode the raw packets and call the callback
 // function when a full packet has been received.
 
-var _ = require('underscore');
-var bufferpack = require('bufferpack');
+include('underscore-min.js');
+include('bufferpack.js');
 
 var types = {
 	0x0 : "OBJ",

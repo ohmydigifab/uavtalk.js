@@ -1,7 +1,8 @@
 var EventEmitter = require('events').EventEmitter;
-var UavtalkPacketHandler = require("../../uavtalk_packet_handler").UavtalkPacketHandler;
-var UavtalkObjectManager = require("../../uavtalk_object_manager").UavtalkObjectManager;
 var SerialPort = require("serialport").SerialPort;
+
+include('../../uavtalk_packet_handler.js');
+include('../../uavtalk_object_manager.js');
 
 var cc3d_serial = new SerialPort("/dev/ttyAMA0", {
 	baudrate : 57600
