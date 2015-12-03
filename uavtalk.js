@@ -76,7 +76,7 @@ function UavtalkPacketHandler() {
 				length += data.length;
 			}
 			var buffer = new Buffer(length + 1);
-			var header = new Buffer([ SYNC, type | VERSION, 0, 0, 0, 0, 0, 0 ]);
+			var header = new Buffer([ SYNC, type | VERSION, 0, 0, 0, 0, 0, 0, 0, 0 ]);
 
 			header[2] = length & 0xFF;
 			header[3] = (length >> 8) & 0xFF;
@@ -379,21 +379,15 @@ function UavtalkObjectManager(objpath) {
 				return null;
 			}
 
-			var received = false;
-			var _callback = function() {
-				received = true;
-				if(callback)
-					callback();
-			}
 			request_id = object_id;
-			request_callback = _callback;
-			
+			request_callback = callback;
+
 			var request_func = function() {
 				if (self.output_stream) {
-					self.output_stream(packetHandler.getRequestPacket(object_id));
+					self.output_stream(packetHandler.getRequestPacket(request_id));
 				}
 				setTimeout(function() {
-					if (received == false) {
+					if (request_id != null) {
 						request_func();
 					}
 				}, 1000);
