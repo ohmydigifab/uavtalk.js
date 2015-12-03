@@ -1,19 +1,21 @@
 var EventEmitter = require('events').EventEmitter;
-var SerialPort = require("serialport").SerialPort;
+var SerialPort = require("spport").SerialPort;
 var Uavtalk = require("uavtalk");
 
 
 var objMan = Uavtalk.ObjectManager("./openpilot_definitions");
 objMan.init(function() {
-	var serial = new SerialPort("/dev/ttyAMA0", {
+	var sp = new SerialPort("/dev/ttyAMA0", {
 		baudrate : 57600
 	});
 	objMan.output_stream = function(data) {
 		console.log(data);
-		serial.write(data);
+		sp.write(data,function () {
+		    sp.drain(callback);
+		  }););
 	}
-	serial.on("data", objMan.input_stream());
-	serial.on("open", function() {
+	sp.on("data", objMan.input_stream());
+	sp.on("open", function() {
 
 		objMan.requestInstance("GCSTelemetryStats", function(gtsObj) {
 			console.log(gtsObj);
