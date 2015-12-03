@@ -71,11 +71,11 @@ function Crc(object) {
 function UavtalkPacketHandler() {
 	return {
 		getPacket : function(type, object_id, data) {
-			var length = MIN_HEADER_LENGTH + 1;
+			var length = MIN_HEADER_LENGTH;
 			if (data != null) {
 				length += data.length;
 			}
-			var buffer = new Buffer(length);
+			var buffer = new Buffer(length + 1);
 			var header = new Buffer([ SYNC, type | VERSION, 0, 0, 0, 0, 0, 0 ]);
 
 			header[2] = length & 0xFF;
@@ -84,17 +84,16 @@ function UavtalkPacketHandler() {
 				header[i] = object_id & 0xff;
 				object_id >>= 8;
 			}
-
-			buffer.copy(header, 0, header.length);
+			header.copy(buffer, 0);
 
 			var crc = Crc();
 			crc.addList(header);
 
 			if (data != null) {
 				crc.addList(data);
-				buffer.copy(data, header.length, data.length);
+				data.copy(buffer, header.length);
 			}
-			buffer[buffer.length - 1] = crc.read();
+			buffer[length] = crc.read();
 
 			return buffer;
 		},
@@ -317,10 +316,11 @@ function UavtalkObjectManager(objpath) {
 				}
 				var obj = uavobjects[instance.object_id];
 				if (!obj) {
-					console.log(instance);
 					return;
 				}
 				obj.instance = instance;
+				
+				console.log(obj.name);
 
 				if (requested[instance.object_id]) {
 					_.each(requested[instance.object_id], function(callback) {
