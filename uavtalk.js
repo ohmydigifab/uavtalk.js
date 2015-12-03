@@ -37,7 +37,7 @@ var types = {
 function UavtalkPacketHandler() {
 	return {
 		getPacket : function(type, object_id, data) {
-			
+
 			header = new Buffer([ SYNC, type | VERSION, 0, 0, 0, 0, 0, 0 ]);
 
 			length = MIN_HEADER_LENGTH;
@@ -166,72 +166,76 @@ function UavtalkObjectManager(objpath) {
 	var uavobject_name_index = {}
 	var ready = false;
 
-	fs.readdir(objpath, function(err, files) {
-		if (err)
-			throw err;
+	var init = function(callback) {
+		fs.readdir(objpath, function(err, files) {
+			if (err)
+				throw err;
 
-		var count = 1
+			var count = 1;
 
-		function checkdone() {
-			count--;
-			if (count === 0) {
-				ready = true;
-			}
-		}
-
-		_.each(files, function(filename) {
-			if (!endsWith(filename, ".json")) {
-				return;
-			}
-			++count;
-			var filename = path.join(objpath, filename);
-			fs.readFile(filename, function(err, data) {
-				var json = JSON.parse(data);
-				var unpackstr = "<"
-				_.each(json.fields, function(f) {
-					var u;
-					if (f.type === 0) {
-						// int8
-						u = "b"
-					} else if (f.type === 1) {
-						// int16
-						u = "h"
-					} else if (f.type === 2) {
-						// int32
-						u = "i"
-					} else if (f.type === 3) {
-						// uint8
-						u = "B"
-					} else if (f.type === 4) {
-						// uint16
-						u = "H"
-					} else if (f.type === 5) {
-						// uint32
-						u = "I"
-					} else if (f.type === 6) {
-						// float
-						u = "f"
-					} else if (f.type === 7) {
-						// enum
-						u = "B"
-					} else {
-						throw ("Unknown field type: " + f.type);
+			function checkdone() {
+				count--;
+				if (count === 0) {
+					ready = true;
+					if (callback) {
+						callback();
 					}
-					u = u + "(" + f.name + ")";
-					if (f.numElements > 1) {
-						u = f.numElements.toString(10) + u;
-					}
-					unpackstr += u;
+				}
+			}
+
+			_.each(files, function(filename) {
+				if (!endsWith(filename, ".json")) {
+					return;
+				}
+				++count;
+				var filename = path.join(objpath, filename);
+				fs.readFile(filename, function(err, data) {
+					var json = JSON.parse(data);
+					var unpackstr = "<"
+					_.each(json.fields, function(f) {
+						var u;
+						if (f.type === 0) {
+							// int8
+							u = "b"
+						} else if (f.type === 1) {
+							// int16
+							u = "h"
+						} else if (f.type === 2) {
+							// int32
+							u = "i"
+						} else if (f.type === 3) {
+							// uint8
+							u = "B"
+						} else if (f.type === 4) {
+							// uint16
+							u = "H"
+						} else if (f.type === 5) {
+							// uint32
+							u = "I"
+						} else if (f.type === 6) {
+							// float
+							u = "f"
+						} else if (f.type === 7) {
+							// enum
+							u = "B"
+						} else {
+							throw ("Unknown field type: " + f.type);
+						}
+						u = u + "(" + f.name + ")";
+						if (f.numElements > 1) {
+							u = f.numElements.toString(10) + u;
+						}
+						unpackstr += u;
+					});
+					json.unpackstr = unpackstr;
+					uavobjects[json.object_id] = json;
+					uavobject_name_index[json.name] = json.object_id;
+					checkdone();
 				});
-				json.unpackstr = unpackstr;
-				uavobjects[json.object_id] = json;
-				uavobject_name_index[json.name] = json.object_id;
-				checkdone();
 			});
+			checkdone();
 		});
-		checkdone();
-
-	});
+	}
 
 	function unpack_obj(obj, data) {
 		var out = {};
@@ -260,6 +264,7 @@ function UavtalkObjectManager(objpath) {
 	var requested = {};
 
 	var self = {
+		init : init,
 		ready : function() {
 			return ready;
 		},
