@@ -352,6 +352,10 @@ function UavtalkObjectManager(objpath) {
 				return pack_obj(objdef, obj);
 			}
 		},
+		getObjectId : function(object_name)
+		{
+			return uavobject_name_index[object_name];
+		},
 		getObject : function(object_id) {
 			if (typeof (object_id) == 'string') {
 				object_id = uavobject_name_index[object_id];

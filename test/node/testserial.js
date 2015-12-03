@@ -7,6 +7,22 @@ var objMan = new Uavtalk.ObjectManager("./openpilot_definitions");
 var gtsObj;
 var ftsObj;
 
+function getBlankGtsObj() {
+	var gtsObj = {};
+	gtsObj.TxDataRate = 0;
+	gtsObj.TxBytes = 0;
+	gtsObj.TxFailures = 0;
+	gtsObj.TxRetries = 0;
+	gtsObj.RxDataRate = 0;
+	gtsObj.RxBytes = 0;
+	gtsObj.RxFailures = 0;
+	gtsObj.RxSyncErrors = 0;
+	gtsObj.RxCrcErrors = 0;
+	gtsObj.Status = 0;
+	gtsObj.object_id = objMan.getObjectId("GCSTelemetryStats");
+	return gtsObj;
+}
+
 async.waterfall([ function(callback) {
 	objMan.init(function() {
 		callback(null);
@@ -26,38 +42,34 @@ async.waterfall([ function(callback) {
 		callback(null);
 	});
 }, function(callback) {
-	objMan.requestObject("GCSTelemetryStats", function(obj) {
-		callback(null, obj);
-	});
-}, function(obj, callback) {
-	gtsObj = obj;
-	console.log(gtsObj);
 	objMan.requestObject("FlightTelemetryStats", function(obj) {
 		callback(null, obj);
 	});
 }, function(obj, callback) {
-	ftsObj = obj;
-	console.log(ftsObj);
-	if (ftsObj && ftsObj.Status == 0) {
-		gtsObj.TxDataRate = 0;
-		gtsObj.TxBytes = 0;
-		gtsObj.TxFailures = 0;
-		gtsObj.TxRetries = 0;
-		gtsObj.RxDataRate = 0;
-		gtsObj.RxBytes = 0;
-		gtsObj.RxFailures = 0;
-		gtsObj.RxSyncErrors = 0;
-		gtsObj.RxCrcErrors = 0;
-		gtsObj.Status = 1;
-		console.log(gtsObj);
-		objMan.updateObject(gtsObj);
-	}
-	objMan.requestObject("FlightTelemetryStats", function(obj) {
-		callback(null, obj);
-	});
-}, function(obj, callback) {
-	ftsObj = obj;
-	console.log(ftsObj);
+	gtsObj = getBlankGtsObj();
+	var connection = function(obj)
+	{
+		ftsObj = obj;
+		console.log(ftsObj);
+		if (ftsObj.Status == 0) {
+			gtsObj.Status = 1;
+			console.log(gtsObj);
+			objMan.updateObject(gtsObj);
+		}
+		else if (ftsObj.Status == 2) {
+			gtsObj.Status = 1;
+			console.log(gtsObj);
+			objMan.updateObject(gtsObj);
+		}
+		else if (ftsObj.Status == 3) {
+			console.log("connected");
+			callback(null);
+			return;
+		}
+		objMan.requestObject("FlightTelemetryStats", connection);
+	};
+	connection(obj);
+}, function(callback) {
 	callback(null);
 } ], function(err, result) {
 
