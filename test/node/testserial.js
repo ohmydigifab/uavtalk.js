@@ -7,7 +7,7 @@ var objMan = new Uavtalk.ObjectManager("./openpilot_definitions");
 
 async.waterfall([ function(callback) {
 	objMan.init(function() {
-		callback();
+		callback(null);
 	});
 }, function(callback) {
 	var sp = new SerialPort("/dev/ttyAMA0", {
@@ -21,23 +21,24 @@ async.waterfall([ function(callback) {
 	};
 	sp.on("data", objMan.input_stream);
 	sp.on("open", function() {
-		callback();
+		callback(null);
 	});
 }, function(callback) {
 	objMan.requestObject("GCSTelemetryStats", function(obj) {
-		callback(obj);
+		callback(null, obj);
 	});
-}, function(callback, gtsObj) {
+}, function(gtsObj, callback) {
 	console.log(gtsObj);
 	objMan.requestObject("FlightTelemetryStats", function(obj) {
-		callback(obj);
+		callback(null, obj);
 	});
-}, function(callback, ftsObj) {
+}, function(ftsObj, callback) {
 	console.log(ftsObj);
 	if (ftsObj && ftsObj.Status == 0) {
 		gtsObj.Status == 1;
 		objMan.updateObject(gtsObj);
 	}
+	callback(null);
 } ], function(err, result) {
 
 });

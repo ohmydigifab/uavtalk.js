@@ -5,6 +5,7 @@
     "bufferpack": ">0.0.1",
     "express": ">0.0.1",
     "socket.io": ">0.0.1",
-    "node-gpsd": ">0.0.1"
+    "node-gpsd": ">0.0.1",
+    "async": ">0.0.1"
   }
 }
