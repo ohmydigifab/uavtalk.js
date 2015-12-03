@@ -16,13 +16,13 @@ objMan.init(function() {
 	sp.on("data", objMan.input_stream);
 	sp.on("open", function() {
 
-		objMan.requestInstance("GCSTelemetryStats", function(gtsObj) {
+		objMan.requestObject("GCSTelemetryStats", function(gtsObj) {
 			console.log(gtsObj);
-			objMan.requestInstance("FlightTelemetryStats", function(ftsObj) {
+			objMan.requestObject("FlightTelemetryStats", function(ftsObj) {
 				console.log(ftsObj);
 				if (ftsObj && ftsObj.Status == 0) {
 					gtsObj.Status == 1;
-					objMan.updateInstance(gtsObj);
+					objMan.updateObject(gtsObj);
 				}
 			});
 		});

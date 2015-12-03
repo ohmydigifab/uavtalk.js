@@ -360,7 +360,7 @@ function UavtalkObjectManager(objpath) {
 				return packed;
 			}
 		},
-		getInstance : function(object_id) {
+		getObject : function(object_id) {
 			if (typeof (object_id) == 'string') {
 				object_id = uavobject_name_index[object_id];
 			}
@@ -370,7 +370,7 @@ function UavtalkObjectManager(objpath) {
 			}
 			return obj.instance;
 		},
-		requestInstance : function(object_id, callback) {
+		requestObject : function(object_id, callback) {
 			if (typeof (object_id) == 'string') {
 				object_id = uavobject_name_index[object_id];
 			}
@@ -394,7 +394,7 @@ function UavtalkObjectManager(objpath) {
 			}
 			request_func();
 		},
-		updateInstance : function(obj) {
+		updateObject : function(obj) {
 			if (self.output_stream) {
 				self.output_stream(packetHandler.pack(obj));
 			}
