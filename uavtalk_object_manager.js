@@ -124,7 +124,7 @@ function UavtalkObjectManager(objpath) {
 				objdata.name = obj.name;
 				return objdata;
 			}
-		}
+		},
 		encode : function(data) {
 			var obj = uavobjects[data.object_id];
 			if (!obj) {

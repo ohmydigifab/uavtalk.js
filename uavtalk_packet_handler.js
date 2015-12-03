@@ -33,7 +33,7 @@ function UavtalkPacketHandler(callback) {
 		pack : function(obj)
 		{
 			
-		}
+		},
 		unpack : function(data) {
 			var index = 0;
 			var datalen = data.length;
