@@ -19,12 +19,10 @@ function getBlankGtsObj() {
 	gtsObj.RxSyncErrors = 0;
 	gtsObj.RxCrcErrors = 0;
 	gtsObj.Status = 0;
-	gtsObj.name = "GCSTelemetryStats";
+	gtsObj.name = "GCSTelemetryStats";	
 	gtsObj.object_id = objMan.getObjectId(gtsObj.name);
 	return gtsObj;
 }
-
-var connecting = false;
 
 async.waterfall([ function(callback) {
 	objMan.init(function() {
@@ -50,29 +48,29 @@ async.waterfall([ function(callback) {
 		callback(null, obj);
 	});
 }, function(obj, callback) {
-	var connection = function(obj) {
+	gtsObj = getBlankGtsObj();
+	var connection = function(obj)
+	{
 		ftsObj = obj;
 		console.log(ftsObj);
-		gtsObj = getBlankGtsObj();
 		if (ftsObj.Status == 0) {
 			gtsObj.Status = 1;
 			console.log(gtsObj);
 			objMan.updateObject(gtsObj);
-		} else if (ftsObj.Status == 2) {
+		}
+		else if (ftsObj.Status == 2) {
 			gtsObj.Status = 2;
 			console.log(gtsObj);
 			objMan.updateObject(gtsObj);
-		} else if (ftsObj.Status == 3) {
+		}
+		else if (ftsObj.Status == 3) {
 			console.log("connected");
 			callback(null);
 			return;
 		}
 		objMan.requestObject("FlightTelemetryStats", connection);
 	};
-	if (connecting == false) {
-		connection(obj);
-	}
-	connecting = true;
+	connection(obj);
 }, function(callback) {
 	callback(null);
 } ], function(err, result) {
