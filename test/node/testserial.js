@@ -1,5 +1,5 @@
 var EventEmitter = require('events').EventEmitter;
-var SerialPort = require("spport").SerialPort;
+var SerialPort = require("serialport").SerialPort;
 var Uavtalk = require("uavtalk");
 
 var objMan = Uavtalk.ObjectManager("./openpilot_definitions");
@@ -10,7 +10,7 @@ objMan.init(function() {
 	objMan.output_stream = function(data) {
 		console.log(data);
 		sp.write(data, function() {
-			sp.drain(callback);
+			sp.drain();
 		});
 	}
 	sp.on("data", objMan.input_stream());
