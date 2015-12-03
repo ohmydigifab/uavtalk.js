@@ -50,7 +50,6 @@ async.waterfall([ function(callback) {
 		callback(null, obj);
 	});
 }, function(obj, callback) {
-	connecting = true;
 	var connection = function(obj) {
 		ftsObj = obj;
 		console.log(ftsObj);
@@ -73,6 +72,7 @@ async.waterfall([ function(callback) {
 	if (connecting == false) {
 		connection(obj);
 	}
+	connecting = true;
 }, function(callback) {
 	callback(null);
 } ], function(err, result) {
