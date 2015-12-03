@@ -110,6 +110,7 @@ function endsWith(str, suffix) {
 
 function UavtalkObjectManager(objpath) {
 	// console.log("Reading json object defs...");
+	var packetHandler = UavtalkPacketHandler();
 	var fs = require('fs');
 	var path = require('path');
 
@@ -211,6 +212,21 @@ function UavtalkObjectManager(objpath) {
 		ready : function() {
 			return ready;
 		},
+		output_stream : function(data) {
+		},
+		input_stream : function() {
+			return packetHandler.unpack(function(packet) {
+				if (!this.ready()) {
+					return;
+				}
+				var data = this.decode(packet);
+				if (!data) {
+					return;
+				}
+				console.log(data.name);
+				// dataemitter.emit(data.name,data);
+			});
+		},
 		decode : function(packet) {
 			var obj = uavobjects[packet.object_id];
 			if (!obj) {
@@ -240,9 +256,13 @@ function UavtalkObjectManager(objpath) {
 				return packed;
 			}
 		},
-		getInstance: function(objId)
-		{
+		getInstance : function(objId) {
 			return null;
+		},
+		updateInstance : function(obj) {
+			if (output_stream) {
+				output_stream(packetHandler.pack(gtsObj));
+			}
 		}
 	}
 }
