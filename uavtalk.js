@@ -324,9 +324,11 @@ function UavtalkObjectManager(objpath) {
 				console.log(obj.name);
 
 				if (request_id == instance.object_id) {
+					var callback = request_callback;
 					request_id = null;
 					request_callback = null;
-					request_callback(instance);
+					if(callback)
+						callback(instance);
 				}
 			});
 		},
