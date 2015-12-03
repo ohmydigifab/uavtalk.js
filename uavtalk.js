@@ -36,7 +36,7 @@ var types = {
 
 function UavtalkPacketHandler() {
 	return {
-		getPacket : function(type, objId, data) {
+		getPacket : function(type, object_id, data) {
 			
 			header = new Buffer([ SYNC, type | VERSION, 0, 0, 0, 0, 0, 0 ]);
 
@@ -47,8 +47,8 @@ function UavtalkPacketHandler() {
 			header[2] = length & 0xFF;
 			header[3] = (length >> 8) & 0xFF;
 			// for i in xrange(4,8):
-			// header[i] = objId & 0xff
-			// objId >>= 8
+			// header[i] = object_id & 0xff
+			// object_id >>= 8
 
 			// crc = Crc()
 			// crc.addList(header)
@@ -62,8 +62,8 @@ function UavtalkPacketHandler() {
 
 			return header;
 		},
-		getRequestPacket : function(objId) {
-			this.getPacket(TYPE_OBJ_REQ, objId, null);
+		getRequestPacket : function(object_id) {
+			this.getPacket(TYPE_OBJ_REQ, object_id, null);
 		},
 		pack : function(obj) {
 			var headerbuffer = new Buffer(10);
@@ -275,6 +275,10 @@ function UavtalkObjectManager(objpath) {
 					return;
 				}
 				var obj = uavobjects[instance.object_id];
+				if (!obj) {
+					console.log(instance);
+					return;
+				}
 				obj.instance = instance;
 
 				if (requested[instance.object_id]) {
@@ -297,6 +301,7 @@ function UavtalkObjectManager(objpath) {
 			} else {
 				var objdata = unpack_obj(obj, packet.data);
 				objdata.name = obj.name;
+				objdata.object_id = packet.object_id;
 				return objdata;
 			}
 		},
@@ -314,30 +319,30 @@ function UavtalkObjectManager(objpath) {
 				return packed;
 			}
 		},
-		getInstance : function(objId) {
-			if (typeof (objId) == 'string') {
-				objId = uavobject_name_index[objId];
+		getInstance : function(object_id) {
+			if (typeof (object_id) == 'string') {
+				object_id = uavobject_name_index[object_id];
 			}
-			var obj = uavobjects[objId];
+			var obj = uavobjects[object_id];
 			if (!obj) {
 				return null;
 			}
 			return obj.instance;
 		},
-		requestInstance : function(objId, callback) {
-			if (typeof (objId) == 'string') {
-				objId = uavobject_name_index[objId];
+		requestInstance : function(object_id, callback) {
+			if (typeof (object_id) == 'string') {
+				object_id = uavobject_name_index[object_id];
 			}
-			var obj = uavobjects[objId];
+			var obj = uavobjects[object_id];
 			if (!obj) {
 				return null;
 			}
-			if (requested[objId] == null) {
-				requested[objId] = [];
+			if (requested[object_id] == null) {
+				requested[object_id] = [];
 			}
-			requested[objId].push(callback);
+			requested[object_id].push(callback);
 			if (output_stream) {
-				output_stream(packetHandler.pack(packetHandler.getRequestPacket(objId)));
+				output_stream(packetHandler.pack(packetHandler.getRequestPacket(object_id)));
 			}
 		},
 		updateInstance : function(obj) {
