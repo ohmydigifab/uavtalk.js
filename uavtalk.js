@@ -285,11 +285,7 @@ function UavtalkObjectManager(objpath) {
 			console.log("Couldn't pack " + objdef.name);
 			return null;
 		}
-		var buffer = new Buffer(packed.length);
-		for ( var i = 0; i < buffer.length; i++) {
-			buffer[i] = packed[i];
-		}
-		return buffer;
+		return packed;
 	}
 
 	var warned = {};
