@@ -7,7 +7,7 @@ var cc3d_serial = new SerialPort("/dev/ttyAMA0", {
 	baudrate : 57600
 });
 
-var objMan = UavtalkObjectManager("../uavtalk_json");
+var objMan = UavtalkObjectManager("./openpilot_definitions");
 var packetHandler = UavtalkPacketHandler();
 
 cc3d_serial.on("data", packetHandler.unpack(function(packet) {
