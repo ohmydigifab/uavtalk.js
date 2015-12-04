@@ -7,6 +7,11 @@ var objMan = new Uavtalk.ObjectManager("./openpilot_definitions");
 var gtsObj;
 var ftsObj;
 
+var STATUS_DISCONNECTED = 0;
+var STATUS_HANDSHAKEREQ = 1;
+var STATUS_HANDSHAKEACK = 2;
+var STATUS_CONNECTED = 3;
+
 function getBlankGtsObj() {
 	var gtsObj = {};
 	gtsObj.TxDataRate = 0;
@@ -19,7 +24,7 @@ function getBlankGtsObj() {
 	gtsObj.RxSyncErrors = 0;
 	gtsObj.RxCrcErrors = 0;
 	gtsObj.Status = 0;
-	gtsObj.name = "GCSTelemetryStats";	
+	gtsObj.name = "GCSTelemetryStats";
 	gtsObj.object_id = objMan.getObjectId(gtsObj.name);
 	return gtsObj;
 }
@@ -49,21 +54,18 @@ async.waterfall([ function(callback) {
 	});
 }, function(obj, callback) {
 	gtsObj = getBlankGtsObj();
-	var connection = function(obj)
-	{
+	var connection = function(obj) {
 		ftsObj = obj;
 		console.log(ftsObj);
-		if (ftsObj.Status == 0) {
-			gtsObj.Status = 1;
+		if (ftsObj.Status == STATUS_DISCONNECTED) {
+			gtsObj.Status = STATUS_HANDSHAKEREQ;
 			console.log(gtsObj);
 			objMan.updateObject(gtsObj);
-		}
-		else if (ftsObj.Status == 2) {
-			gtsObj.Status = 2;
+		} else if (ftsObj.Status == STATUS_HANDSHAKEACK) {
+			gtsObj.Status = STATUS_CONNECTED;
 			console.log(gtsObj);
 			objMan.updateObject(gtsObj);
-		}
-		else if (ftsObj.Status == 3) {
+		} else if (ftsObj.Status == STATUS_CONNECTED) {
 			console.log("connected");
 			callback(null);
 			return;
