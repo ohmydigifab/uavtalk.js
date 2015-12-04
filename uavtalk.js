@@ -280,7 +280,11 @@ function UavtalkObjectManager(objpath) {
 	}
 
 	function pack_obj(objdef, obj) {
-		var packed = bufferpack.pack(objdef.unpackstr, obj);
+		var values = [];
+		for (var i in obj) {
+			values.push(obj[i]);
+		}
+		var packed = bufferpack.pack(objdef.unpackstr, values);
 		if (!packed) {
 			console.log("Couldn't pack " + objdef.name);
 			return null;
@@ -391,7 +395,7 @@ function UavtalkObjectManager(objpath) {
 			request_func();
 		},
 		updateObject : function(obj) {
-			var data = self.serialize(obj)
+			var data = self.serialize(obj);
 			if (self.output_stream) {
 				self.output_stream(packetHandler.getPacket(TYPE_OBJ, obj.object_id, data));
 			}
