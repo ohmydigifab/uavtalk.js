@@ -1,0 +1,34 @@
+{
+  "name": "uavtalk-js",
+  "description": "Module to talk with openpilot board in uavtalk protocol",
+  "version": "0.0.1",
+  "keywords": [
+    "uavtalk",
+    "uav",
+    "protocol",
+    "openpilot",
+    "cc3d",
+    "revo",
+    "primitive",
+  ],
+  "homepage": "https://github.com/ohmydigifab/uavtalk.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ohmydigifab/uavtalk.js.git"
+  },
+  "main": "./uavtalk.js",
+  "author": {
+    "name": "takumadx",
+    "email": "hirayama.takuma@ohmydigifab.com"
+  },
+  "dependencies": {
+    "underscore": ">0.0.1",
+    "bufferpack": ">0.0.1",
+  },
+  "bugs": {
+    "url": "https://github.com/ohmydigifab/uavtalk.js/issues"
+  },
+  "readme": "ERROR: No README data found!",
+  "_id": "uavtalk-js@0.0.1",
+  "_from": "uavtalk-js@>0.0.1"
+}
