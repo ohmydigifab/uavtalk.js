@@ -9,7 +9,7 @@
     "openpilot",
     "cc3d",
     "revo",
-    "primitive",
+    "primitive"
   ],
   "homepage": "https://github.com/ohmydigifab/uavtalk.js",
   "repository": {
@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "underscore": ">0.0.1",
-    "bufferpack": ">0.0.1",
+    "bufferpack": ">0.0.1"
   },
   "bugs": {
     "url": "https://github.com/ohmydigifab/uavtalk.js/issues"
