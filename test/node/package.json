@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "uavtalk": ">0.0.1",
     "serialport": ">0.0.1",
     "underscore": ">0.0.1",
     "bufferpack": ">0.0.1",
