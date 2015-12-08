@@ -74,11 +74,11 @@ async.waterfall([ function(callback) {
 	};
 	connection(obj);
 }, function(callback) {
-	if (process.argv[1] == null) {
+	if (process.argv[2] == null) {
 		callback(null);
 		return;
 	}
-	console.log("get " + process.argv[1]);
+	console.log("get " + process.argv[2]);
 	objMan.requestObject("FlightTelemetryStats", function(obj) {
 		callback(null, obj);
 	});
