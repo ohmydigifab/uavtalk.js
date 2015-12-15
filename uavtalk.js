@@ -254,15 +254,11 @@ function UavtalkObjectManager(objpath) {
 							throw ("Unknown field type: " + f.type);
 						}
 						if (f.numElements > 1) {
-							if (f.type === 3) {
-								u = f.numElements + u + "(" + f.name + ")";
-							} else {
-								var _u = "";
-								for ( var i = 0; i < f.numElements; i++) {
-									_u += u + "(" + f.name + "Idx" + i + ")";
-								}
-								u = _u;
+							var _u = "";
+							for ( var i = 0; i < f.numElements; i++) {
+								_u += u + "(" + f.name + "Idx" + i + ")";
 							}
+							u = _u;
 						} else {
 							u = u + "(" + f.name + ")";
 						}
@@ -326,7 +322,7 @@ function UavtalkObjectManager(objpath) {
 			}
 			obj.instance = instance;
 
-			//console.log(obj.name);
+			// console.log(obj.name);
 
 			if (request_id == instance.object_id) {
 				var callback = request_callback;
