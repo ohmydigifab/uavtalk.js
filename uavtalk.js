@@ -312,19 +312,20 @@ function UavtalkObjectManager(objpath) {
 			if (!self.ready()) {
 				return;
 			}
-			var instance = self.deserialize(packet.object_id, packet.data);
-			if (!instance) {
+			var obj = uavobjects[packet.object_id];
+			if (!obj) {
 				return;
 			}
-			var obj = uavobjects[instance.object_id];
-			if (!obj) {
+			var instance = null;
+			if (packet.type == "OBJ") {
+				self.deserialize(packet.object_id, packet.data);
+			}
+			if (!instance) {
 				return;
 			}
 			obj.instance = instance;
 
-			// console.log(obj.name);
-
-			if (request_id == instance.object_id) {
+			if (request_id == packet.object_id) {
 				var callback = request_callback;
 				request_id = null;
 				request_callback = null;
