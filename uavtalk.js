@@ -318,10 +318,7 @@ function UavtalkObjectManager(objpath) {
 			}
 			var instance = null;
 			if (packet.type == "OBJ") {
-				self.deserialize(packet.object_id, packet.data);
-			}
-			if (!instance) {
-				return;
+				instance = self.deserialize(packet.object_id, packet.data);
 			}
 			obj.instance = instance;
 
