@@ -312,7 +312,12 @@ function UavtalkObjectManager(objpath) {
 			if (!self.ready()) {
 				return;
 			}
+			var blnMeta = false;
 			var obj = uavobjects[packet.object_id];
+			if (!obj) {
+				obj = uavobjects[packet.object_id - 1];
+				blnMeta = true;
+			}
 			if (!obj) {
 				return;
 			}
@@ -320,7 +325,11 @@ function UavtalkObjectManager(objpath) {
 			if (packet.type == "OBJ") {
 				instance = self.deserialize(packet.object_id, packet.data);
 			}
-			obj.instance = instance;
+			if (blnMeta) {
+				obj.meta = instance;
+			} else {
+				obj.instance = instance;
+			}
 
 			if (request_id == packet.object_id) {
 				var callback = request_callback;
@@ -362,7 +371,7 @@ function UavtalkObjectManager(objpath) {
 		getObjectId : function(object_name) {
 			return uavobject_name_index[object_name];
 		},
-		getObject : function(object_id) {
+		getObject : function(object_id, blnMeta) {
 			if (typeof (object_id) == 'string') {
 				object_id = uavobject_name_index[object_id];
 			}
@@ -370,9 +379,13 @@ function UavtalkObjectManager(objpath) {
 			if (!objdef) {
 				return null;
 			}
-			return objdef.instance;
+			if (blnMeta) {
+				return objdef.meta;
+			} else {
+				return objdef.instance;
+			}
 		},
-		requestObject : function(object_id, callback) {
+		requestObject : function(object_id, callback, blnMeta) {
 			if (typeof (object_id) == 'string') {
 				object_id = uavobject_name_index[object_id];
 			}
@@ -386,7 +399,7 @@ function UavtalkObjectManager(objpath) {
 
 			var request_func = function() {
 				if (self.output_stream) {
-					self.output_stream(packetHandler.getRequestPacket(request_id));
+					self.output_stream(packetHandler.getRequestPacket(request_id + (blnMeta ? 1 : 0)));
 				}
 				setTimeout(function() {
 					if (request_id != null) {
