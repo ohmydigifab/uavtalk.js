@@ -259,7 +259,7 @@ function UavtalkObjectManager(objpath) {
 							} else {
 								var _u = "";
 								for ( var i = 0; i < f.numElements; i++) {
-									_u += u + "(" + f.name + "_" + i + ")";
+									_u += u + "(" + f.name + "Idx" + i + ")";
 								}
 								u = _u;
 							}
@@ -326,7 +326,7 @@ function UavtalkObjectManager(objpath) {
 			}
 			obj.instance = instance;
 
-			console.log(obj.name);
+			//console.log(obj.name);
 
 			if (request_id == instance.object_id) {
 				var callback = request_callback;
