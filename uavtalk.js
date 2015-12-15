@@ -254,8 +254,14 @@ function UavtalkObjectManager(objpath) {
 							throw ("Unknown field type: " + f.type);
 						}
 						if (f.numElements > 1) {
-							for ( var i = 0; i < f.numElements; i++) {
-								u = u + "(" + f.name + "_" + i + ")";
+							if (f.type === 3) {
+								u = f.numElements + u + "(" + f.name + ")";
+							} else {
+								var _u = "";
+								for ( var i = 0; i < f.numElements; i++) {
+									_u += u + "(" + f.name + "_" + i + ")";
+								}
+								u = _u;
 							}
 						} else {
 							u = u + "(" + f.name + ")";
