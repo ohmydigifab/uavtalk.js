@@ -253,9 +253,12 @@ function UavtalkObjectManager(objpath) {
 						} else {
 							throw ("Unknown field type: " + f.type);
 						}
-						u = u + "(" + f.name + ")";
 						if (f.numElements > 1) {
-							u = f.numElements.toString(10) + u;
+							for ( var i = 0; i < f.numElements; i++) {
+								u = u + "(" + f.name + "_" + i + ")";
+							}
+						} else {
+							u = u + "(" + f.name + ")";
 						}
 						unpackstr += u;
 					});
@@ -281,7 +284,7 @@ function UavtalkObjectManager(objpath) {
 
 	function pack_obj(objdef, obj) {
 		var values = [];
-		for (var i in obj) {
+		for ( var i in obj) {
 			values.push(obj[i]);
 		}
 		var packed = bufferpack.pack(objdef.unpackstr, values);
@@ -356,8 +359,7 @@ function UavtalkObjectManager(objpath) {
 				return pack_obj(objdef, obj);
 			}
 		},
-		getObjectId : function(object_name)
-		{
+		getObjectId : function(object_name) {
 			return uavobject_name_index[object_name];
 		},
 		getObject : function(object_id) {
