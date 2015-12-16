@@ -477,7 +477,7 @@ function UavtalkObjectManager(objpath) {
 		getObjectId : function(object_name) {
 			return uavobject_name_index[object_name];
 		},
-		getObject : function(object_id, callback, blnRenew) {
+		getObject : function(object_id, callback, blnImmediate) {
 			if (typeof (object_id) == 'string') {
 				var nodes = object_id.split(".");
 				object_id = uavobject_name_index[nodes[0]];
@@ -489,7 +489,7 @@ function UavtalkObjectManager(objpath) {
 			if (!objdef) {
 				return null;
 			}
-			if (objdef.instance && !blnRenew) {
+			if (objdef.instance && blnImmediate) {
 				callback(objdef.instance);
 			}
 			else{
