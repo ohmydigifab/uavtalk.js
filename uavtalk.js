@@ -218,7 +218,7 @@ var UavtalkObjMetadataHelper = (function() {
 	var UAVOBJ_LOGGING_UPDATE_MODE_SHIFT = 8;
 	var UAVOBJ_UPDATE_MODE_MASK = 0x3;
 
-	var SET_BITS ~ function(_var, shift, value, mask) {
+	var SET_BITS = function(_var, shift, value, mask) {
 		_var = (_var & ~(mask << shift)) | (value << shift);
 		return _var;
 	};
@@ -534,5 +534,6 @@ function UavtalkObjectManager(objpath) {
 
 module.exports = {
 	ObjectManager : UavtalkObjectManager,
-	PacketHandler : UavtalkPacketHandler
+	PacketHandler : UavtalkPacketHandler,
+	UavtalkObjMetadataHelper : UavtalkObjMetadataHelper
 };
