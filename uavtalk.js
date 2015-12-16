@@ -198,6 +198,78 @@ function UavtalkObjectManager(objpath) {
 	var uavobject_name_index = {}
 	var ready = false;
 
+	var get_unpackstr = function(fields) {
+		var unpackstr = "<"
+		_.each(fields, function(f) {
+			var u;
+			if (f.type === 0) {
+				// int8
+				u = "b"
+			} else if (f.type === 1) {
+				// int16
+				u = "h"
+			} else if (f.type === 2) {
+				// int32
+				u = "i"
+			} else if (f.type === 3) {
+				// uint8
+				u = "B"
+			} else if (f.type === 4) {
+				// uint16
+				u = "H"
+			} else if (f.type === 5) {
+				// uint32
+				u = "I"
+			} else if (f.type === 6) {
+				// float
+				u = "f"
+			} else if (f.type === 7) {
+				// enum
+				u = "B"
+			} else {
+				throw ("Unknown field type: " + f.type);
+			}
+			if (f.numElements > 1) {
+				var _u = "";
+				for ( var i = 0; i < f.numElements; i++) {
+					_u += u + "(" + f.name + "Idx" + i + ")";
+				}
+				u = _u;
+			} else {
+				u = u + "(" + f.name + ")";
+			}
+			unpackstr += u;
+		});
+		return unpackstr;
+	};
+
+	var create_objMetadataDef = function(object_id) {
+		var json = {
+			"name" : "ObjMetadata",
+			"object_id" : object_id,
+			"unpackstr" : "",
+			"fields" : [ {
+				"name" : "flags",
+				"type" : 4,
+				"numElements" : 1
+			}, {
+				"name" : "telemetryUpdatePeriod",
+				"type" : 4,
+				"numElements" : 1
+			}, {
+				"name" : "gcsTelemetryUpdatePeriod",
+				"type" : 4,
+				"numElements" : 1
+			}, {
+				"name" : "loggingUpdatePeriod",
+				"type" : 4,
+				"numElements" : 1
+			} ]
+		};
+		json.unpackstr = get_unpackstr(json.fields);
+		return json;
+	};
+
 	var init = function(callback) {
 		fs.readdir(objpath, function(err, files) {
 			if (err)
@@ -223,49 +295,9 @@ function UavtalkObjectManager(objpath) {
 				var filename = path.join(objpath, filename);
 				fs.readFile(filename, function(err, data) {
 					var json = JSON.parse(data);
-					var unpackstr = "<"
-					_.each(json.fields, function(f) {
-						var u;
-						if (f.type === 0) {
-							// int8
-							u = "b"
-						} else if (f.type === 1) {
-							// int16
-							u = "h"
-						} else if (f.type === 2) {
-							// int32
-							u = "i"
-						} else if (f.type === 3) {
-							// uint8
-							u = "B"
-						} else if (f.type === 4) {
-							// uint16
-							u = "H"
-						} else if (f.type === 5) {
-							// uint32
-							u = "I"
-						} else if (f.type === 6) {
-							// float
-							u = "f"
-						} else if (f.type === 7) {
-							// enum
-							u = "B"
-						} else {
-							throw ("Unknown field type: " + f.type);
-						}
-						if (f.numElements > 1) {
-							var _u = "";
-							for ( var i = 0; i < f.numElements; i++) {
-								_u += u + "(" + f.name + "Idx" + i + ")";
-							}
-							u = _u;
-						} else {
-							u = u + "(" + f.name + ")";
-						}
-						unpackstr += u;
-					});
-					json.unpackstr = unpackstr;
+					json.unpackstr = get_unpackstr(json.fields);
 					uavobjects[json.object_id] = json;
+					uavobjects[json.object_id + 1] = create_objMetadataDef(json.object_id + 1);
 					uavobject_name_index[json.name] = json.object_id;
 					checkdone();
 				});
@@ -312,12 +344,7 @@ function UavtalkObjectManager(objpath) {
 			if (!self.ready()) {
 				return;
 			}
-			var blnMeta = false;
 			var obj = uavobjects[packet.object_id];
-			if (!obj) {
-				obj = uavobjects[packet.object_id - 1];
-				blnMeta = true;
-			}
 			if (!obj) {
 				return;
 			}
@@ -325,11 +352,7 @@ function UavtalkObjectManager(objpath) {
 			if (packet.type == "OBJ") {
 				instance = self.deserialize(packet.object_id, packet.data);
 			}
-			if (blnMeta) {
-				obj.meta = instance;
-			} else {
-				obj.instance = instance;
-			}
+			obj.instance = instance;
 
 			if (request_id == packet.object_id) {
 				var callback = request_callback;
@@ -371,23 +394,27 @@ function UavtalkObjectManager(objpath) {
 		getObjectId : function(object_name) {
 			return uavobject_name_index[object_name];
 		},
-		getObject : function(object_id, blnMeta) {
+		getObject : function(object_id) {
 			if (typeof (object_id) == 'string') {
-				object_id = uavobject_name_index[object_id];
+				var nodes = object_id.split(".");
+				object_id = uavobject_name_index[nodes[0]];
+				if (nodes[1] == "Metadata") {
+					object_id++;
+				}
 			}
 			var objdef = uavobjects[object_id];
 			if (!objdef) {
 				return null;
 			}
-			if (blnMeta) {
-				return objdef.meta;
-			} else {
-				return objdef.instance;
-			}
+			return objdef.instance;
 		},
-		requestObject : function(object_id, callback, blnMeta) {
+		requestObject : function(object_id, callback) {
 			if (typeof (object_id) == 'string') {
-				object_id = uavobject_name_index[object_id];
+				var nodes = object_id.split(".");
+				object_id = uavobject_name_index[nodes[0]];
+				if (nodes[1] == "Metadata") {
+					object_id++;
+				}
 			}
 			var objdef = uavobjects[object_id];
 			if (!objdef) {
@@ -399,7 +426,7 @@ function UavtalkObjectManager(objpath) {
 
 			var request_func = function() {
 				if (self.output_stream) {
-					self.output_stream(packetHandler.getRequestPacket(request_id + (blnMeta ? 1 : 0)));
+					self.output_stream(packetHandler.getRequestPacket(request_id));
 				}
 				setTimeout(function() {
 					if (request_id != null) {
