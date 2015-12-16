@@ -222,52 +222,49 @@ var UavtalkObjMetadataHelper = (function() {
 		_var = (_var & ~(mask << shift)) | (value << shift);
 		return _var;
 	};
-	
+
 	return {
 		UAVObjAccessType : {
 			ACCESS_READWRITE : 0,
 			ACCESS_READONLY : 1
 		},
 		UAVObjUpdateMode : {
-		    UPDATEMODE_MANUAL    : 0, /**
-										 * Manually update object, by calling
-										 * the updated() function
-										 */
-		    UPDATEMODE_PERIODIC  : 1, /**
-										 * Automatically update object at
-										 * periodic intervals
-										 */
-		    UPDATEMODE_ONCHANGE  : 2, /**
-										 * Only update object when its data
-										 * changes
-										 */
-		    UPDATEMODE_THROTTLED : 3 /**
-										 * Object is updated on change, but not
-										 * more often than the interval time
-										 */
+			UPDATEMODE_MANUAL : 0,
+			/**
+			 * Manually update object, by calling the updated() function
+			 */
+			UPDATEMODE_PERIODIC : 1,
+			/**
+			 * Automatically update object at periodic intervals
+			 */
+			UPDATEMODE_ONCHANGE : 2,
+			/**
+			 * Only update object when its data changes
+			 */
+			UPDATEMODE_THROTTLED : 3
+		/**
+		 * Object is updated on change, but not more often than the interval
+		 * time
+		 */
 		},
 
 		getMetaObjectId : function(id) {
 			return ((id) + 1);
 		},
-		
-		setFlightAccess : function(metadata, mode)
-		{
+
+		setFlightAccess : function(metadata, mode) {
 			metadata.flags = SET_BITS(metadata.flags, UAVOBJ_ACCESS_SHIFT, mode, 1);
 		},
-		
-		setGcsAccess : function(metadata, mode)
-		{
+
+		setGcsAccess : function(metadata, mode) {
 			metadata.flags = SET_BITS(metadata.flags, UAVOBJ_GCS_ACCESS_SHIFT, mode, 1);
 		},
 
-		setFlightTelemetryUpdateMode : function(metadata, val)
-		{
+		setFlightTelemetryUpdateMode : function(metadata, val) {
 			metadata.flags = SET_BITS(metadata.flags, UAVOBJ_TELEMETRY_UPDATE_MODE_SHIFT, val, UAVOBJ_UPDATE_MODE_MASK);
 		},
 
-		setGcsTelemetryUpdateMode : function(metadata, val)
-		{
+		setGcsTelemetryUpdateMode : function(metadata, val) {
 			metadata.flags = SET_BITS(metadata.flags, UAVOBJ_GCS_TELEMETRY_UPDATE_MODE_SHIFT, val, UAVOBJ_UPDATE_MODE_MASK);
 		}
 	};
@@ -480,7 +477,7 @@ function UavtalkObjectManager(objpath) {
 		getObjectId : function(object_name) {
 			return uavobject_name_index[object_name];
 		},
-		getObject : function(object_id) {
+		getObject : function(object_id, callback, blnRenew) {
 			if (typeof (object_id) == 'string') {
 				var nodes = object_id.split(".");
 				object_id = uavobject_name_index[nodes[0]];
@@ -491,36 +488,27 @@ function UavtalkObjectManager(objpath) {
 			var objdef = uavobjects[object_id];
 			if (!objdef) {
 				return null;
+			}
+			if (objdef.instance && !blnRenew) {
+				callback(objdef.instance);
+			}
+			else{
+				request_id = object_id;
+				request_callback = callback;
+
+				var request_func = function() {
+					if (self.output_stream) {
+						self.output_stream(packetHandler.getRequestPacket(request_id));
+					}
+					setTimeout(function() {
+						if (request_id != null) {
+							request_func();
+						}
+					}, 1000);
+				}
+				request_func();
 			}
 			return objdef.instance;
-		},
-		requestObject : function(object_id, callback) {
-			if (typeof (object_id) == 'string') {
-				var nodes = object_id.split(".");
-				object_id = uavobject_name_index[nodes[0]];
-				if (nodes[1] == "Metadata") {
-					object_id = UavtalkObjMetadataHelper.getMetaObjectId(object_id);
-				}
-			}
-			var objdef = uavobjects[object_id];
-			if (!objdef) {
-				return null;
-			}
-
-			request_id = object_id;
-			request_callback = callback;
-
-			var request_func = function() {
-				if (self.output_stream) {
-					self.output_stream(packetHandler.getRequestPacket(request_id));
-				}
-				setTimeout(function() {
-					if (request_id != null) {
-						request_func();
-					}
-				}, 1000);
-			}
-			request_func();
 		},
 		updateObject : function(obj) {
 			var data = self.serialize(obj);
