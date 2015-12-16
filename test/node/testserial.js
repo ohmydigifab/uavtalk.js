@@ -48,7 +48,7 @@ async.waterfall([ function(callback) {
 	sp.on("open", function() {
 		callback(null);
 	});
-}, function(obj, callback) {
+}, function(callback) {
 	gtsObj = getBlankGtsObj();
 	var connection = function(obj) {
 		ftsObj = obj;
