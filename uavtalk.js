@@ -188,6 +188,91 @@ function endsWith(str, suffix) {
 	return str.indexOf(suffix, str.length - suffix.length) !== -1;
 };
 
+var UavtalkObjMetadataHelper = (function() {
+	/**
+	 * Object metadata, each object has a meta object that holds its metadata.
+	 * The metadata define properties for each object and can be used by
+	 * multiple modules (e.g. telemetry and logger)
+	 * 
+	 * The object metadata flags are packed into a single 16 bit integer. The
+	 * bits in the flag field are defined as:
+	 * 
+	 * Bit(s) Name Meaning ------ ---- ------- 0 access Defines the access level
+	 * for the local transactions (readonly=1 and readwrite=0) 1 gcsAccess
+	 * Defines the access level for the local GCS transactions (readonly=1 and
+	 * readwrite=0), not used in the flight s/w 2 telemetryAcked Defines if an
+	 * ack is required for the transactions of this object (1:acked, 0:not
+	 * acked) 3 gcsTelemetryAcked Defines if an ack is required for the
+	 * transactions of this object (1:acked, 0:not acked) 4-5
+	 * telemetryUpdateMode Update mode used by the telemetry module
+	 * (UAVObjUpdateMode) 6-7 gcsTelemetryUpdateMode Update mode used by the GCS
+	 * (UAVObjUpdateMode) 8-9 loggingUpdateMode Update mode used by the logging
+	 * module (UAVObjUpdateMode)
+	 */
+	var UAVOBJ_ACCESS_SHIFT = 0;
+	var UAVOBJ_GCS_ACCESS_SHIFT = 1;
+	var UAVOBJ_TELEMETRY_ACKED_SHIFT = 2;
+	var UAVOBJ_GCS_TELEMETRY_ACKED_SHIFT = 3;
+	var UAVOBJ_TELEMETRY_UPDATE_MODE_SHIFT = 4;
+	var UAVOBJ_GCS_TELEMETRY_UPDATE_MODE_SHIFT = 6;
+	var UAVOBJ_LOGGING_UPDATE_MODE_SHIFT = 8;
+	var UAVOBJ_UPDATE_MODE_MASK = 0x3;
+
+	var SET_BITS ~ function(_var, shift, value, mask) {
+		_var = (_var & ~(mask << shift)) | (value << shift);
+		return _var;
+	};
+	
+	return {
+		UAVObjAccessType : {
+			ACCESS_READWRITE : 0,
+			ACCESS_READONLY : 1
+		},
+		UAVObjUpdateMode : {
+		    UPDATEMODE_MANUAL    : 0, /**
+										 * Manually update object, by calling
+										 * the updated() function
+										 */
+		    UPDATEMODE_PERIODIC  : 1, /**
+										 * Automatically update object at
+										 * periodic intervals
+										 */
+		    UPDATEMODE_ONCHANGE  : 2, /**
+										 * Only update object when its data
+										 * changes
+										 */
+		    UPDATEMODE_THROTTLED : 3 /**
+										 * Object is updated on change, but not
+										 * more often than the interval time
+										 */
+		},
+
+		getMetaObjectId : function(id) {
+			return ((id) + 1);
+		},
+		
+		setFlightAccess : function(metadata, mode)
+		{
+			metadata.flags = SET_BITS(metadata.flags, UAVOBJ_ACCESS_SHIFT, mode, 1);
+		},
+		
+		setGcsAccess : function(metadata, mode)
+		{
+			metadata.flags = SET_BITS(metadata.flags, UAVOBJ_GCS_ACCESS_SHIFT, mode, 1);
+		},
+
+		setFlightTelemetryUpdateMode : function(metadata, val)
+		{
+			metadata.flags = SET_BITS(metadata.flags, UAVOBJ_TELEMETRY_UPDATE_MODE_SHIFT, val, UAVOBJ_UPDATE_MODE_MASK);
+		},
+
+		setGcsTelemetryUpdateMode : function(metadata, val)
+		{
+			metadata.flags = SET_BITS(metadata.flags, UAVOBJ_GCS_TELEMETRY_UPDATE_MODE_SHIFT, val, UAVOBJ_UPDATE_MODE_MASK);
+		}
+	};
+})();
+
 function UavtalkObjectManager(objpath) {
 	// console.log("Reading json object defs...");
 	var packetHandler = UavtalkPacketHandler();
@@ -297,7 +382,8 @@ function UavtalkObjectManager(objpath) {
 					var json = JSON.parse(data);
 					json.unpackstr = get_unpackstr(json.fields);
 					uavobjects[json.object_id] = json;
-					uavobjects[json.object_id + 1] = create_objMetadataDef(json.object_id + 1);
+					var objMetadata_id = UavtalkObjMetadataHelper.getMetaObjectId(json.object_id);
+					uavobjects[objMetadata_id] = create_objMetadataDef(objMetadata_id);
 					uavobject_name_index[json.name] = json.object_id;
 					checkdone();
 				});
@@ -399,7 +485,7 @@ function UavtalkObjectManager(objpath) {
 				var nodes = object_id.split(".");
 				object_id = uavobject_name_index[nodes[0]];
 				if (nodes[1] == "Metadata") {
-					object_id++;
+					object_id = UavtalkObjMetadataHelper.getMetaObjectId(object_id);
 				}
 			}
 			var objdef = uavobjects[object_id];
@@ -413,7 +499,7 @@ function UavtalkObjectManager(objpath) {
 				var nodes = object_id.split(".");
 				object_id = uavobject_name_index[nodes[0]];
 				if (nodes[1] == "Metadata") {
-					object_id++;
+					object_id = UavtalkObjMetadataHelper.getMetaObjectId(object_id);
 				}
 			}
 			var objdef = uavobjects[object_id];
