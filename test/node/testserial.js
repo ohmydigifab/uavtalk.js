@@ -48,10 +48,6 @@ async.waterfall([ function(callback) {
 	sp.on("open", function() {
 		callback(null);
 	});
-}, function(callback) {
-	objMan.requestObject("FlightTelemetryStats", function(obj) {
-		callback(null, obj);
-	});
 }, function(obj, callback) {
 	gtsObj = getBlankGtsObj();
 	var connection = function(obj) {
@@ -70,16 +66,16 @@ async.waterfall([ function(callback) {
 			callback(null);
 			return;
 		}
-		objMan.requestObject("FlightTelemetryStats", connection);
+		objMan.getObject("FlightTelemetryStats", connection, true);
 	};
-	connection(obj);
+	objMan.getObject("FlightTelemetryStats", connection);
 }, function(callback) {
 	if (process.argv[2] == null) {
 		callback(null);
 		return;
 	}
 	console.log("get " + process.argv[2]);
-	objMan.requestObject(process.argv[2], function(obj) {
+	objMan.getObject(process.argv[2], function(obj) {
 		callback(null, obj);
 	});
 } ], function(err, result) {
