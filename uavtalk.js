@@ -497,7 +497,7 @@ function UavtalkObjectManager(objpath) {
 				if (request_id_map[object_id] == null) {
 					request_id_map[object_id] = [];
 				}
-				request_id_map[object_id].push(object_id);
+				request_id_map[object_id].push(callback);
 
 				var request_func = function() {
 					if (self.output_stream) {
