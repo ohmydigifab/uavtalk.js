@@ -420,8 +420,7 @@ function UavtalkObjectManager(objpath) {
 	}
 
 	var warned = {};
-	var request_id = null;
-	var request_callback = null;
+	var request_id_map = {};
 
 	var self = {
 		init : init,
@@ -444,12 +443,12 @@ function UavtalkObjectManager(objpath) {
 			}
 			obj.instance = instance;
 
-			if (request_id == packet.object_id) {
-				var callback = request_callback;
-				request_id = null;
-				request_callback = null;
-				if (callback)
+			if (request_id_map[packet.object_id]) {
+				var callback_ary = request_id_map[packet.object_id];
+				request_id_map[packet.object_id] = null;
+				callback_ary.forEach(function(callback) {
 					callback(instance);
+				});
 			}
 		}),
 		deserialize : function(object_id, data) {
@@ -494,17 +493,18 @@ function UavtalkObjectManager(objpath) {
 			}
 			if (objdef.instance && !blnRenew) {
 				callback(objdef.instance);
-			}
-			else{
-				request_id = object_id;
-				request_callback = callback;
+			} else {
+				if (request_id_map[object_id] == null) {
+					request_id_map[object_id] = [];
+				}
+				request_id_map[object_id].push(object_id);
 
 				var request_func = function() {
 					if (self.output_stream) {
-						self.output_stream(packetHandler.getRequestPacket(request_id));
+						self.output_stream(packetHandler.getRequestPacket(object_id));
 					}
 					setTimeout(function() {
-						if (request_id != null) {
+						if (request_id_map[object_id] != null) {
 							request_func();
 						}
 					}, 1000);
