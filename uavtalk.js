@@ -495,21 +495,21 @@ function UavtalkObjectManager(objpath) {
 				callback(objdef.instance);
 			} else {
 				if (request_id_map[object_id] == null) {
-					request_id_map[object_id] = [];
-				}
-				request_id_map[object_id].push(callback);
-
-				var request_func = function() {
-					if (self.output_stream) {
-						self.output_stream(packetHandler.getRequestPacket(object_id));
-					}
-					setTimeout(function() {
-						if (request_id_map[object_id] != null) {
-							request_func();
+					request_id_map[object_id] = [ callback ];
+					var request_func = function() {
+						if (self.output_stream) {
+							self.output_stream(packetHandler.getRequestPacket(object_id));
 						}
-					}, 1000);
+						setTimeout(function() {
+							if (request_id_map[object_id] != null) {
+								request_func();
+							}
+						}, 1000);
+					}
+					request_func();
+				} else {
+					request_id_map[object_id].push(callback);
 				}
-				request_func();
 			}
 			return objdef.instance;
 		},
