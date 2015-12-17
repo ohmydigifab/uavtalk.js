@@ -248,8 +248,12 @@ var UavtalkObjMetadataHelper = (function() {
 		 */
 		},
 
-		getMetaObjectId : function(id) {
+		getObjMetadataId : function(id) {
 			return ((id) + 1);
+		},
+
+		getObjMetadataName : function(name) {
+			return (name + ".Metadata");
 		},
 
 		setFlightAccess : function(metadata, mode) {
@@ -325,9 +329,9 @@ function UavtalkObjectManager(objpath) {
 		return unpackstr;
 	};
 
-	var create_objMetadataDef = function(object_id) {
+	var create_objMetadataDef = function(object_id, name) {
 		var json = {
-			"name" : "ObjMetadata",
+			"name" : name,
 			"object_id" : object_id,
 			"unpackstr" : "",
 			"fields" : [ {
@@ -379,9 +383,12 @@ function UavtalkObjectManager(objpath) {
 					var json = JSON.parse(data);
 					json.unpackstr = get_unpackstr(json.fields);
 					uavobjects[json.object_id] = json;
-					var objMetadata_id = UavtalkObjMetadataHelper.getMetaObjectId(json.object_id);
-					uavobjects[objMetadata_id] = create_objMetadataDef(objMetadata_id);
 					uavobject_name_index[json.name] = json.object_id;
+					var objMetadata_id = UavtalkObjMetadataHelper.getObjMetadataId(json.object_id);
+					var objMetadata_name = UavtalkObjMetadataHelper.getObjMetadataName(json.name);
+					var objMetadata = create_objMetadataDef(objMetadata_id, objMetadata_name);
+					uavobjects[objMetadata_id] = objMetadata
+					uavobject_name_index[objMetadata.name] = objMetadata.object_id;
 					checkdone();
 				});
 			});
@@ -479,11 +486,7 @@ function UavtalkObjectManager(objpath) {
 		},
 		getObject : function(object_id, callback, blnRenew) {
 			if (typeof (object_id) == 'string') {
-				var nodes = object_id.split(".");
-				object_id = uavobject_name_index[nodes[0]];
-				if (nodes[1] == "Metadata") {
-					object_id = UavtalkObjMetadataHelper.getMetaObjectId(object_id);
-				}
+				object_id = uavobject_name_index[object_id];
 			}
 			var objdef = uavobjects[object_id];
 			if (!objdef) {
