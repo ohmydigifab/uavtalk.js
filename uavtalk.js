@@ -318,11 +318,11 @@ function UavtalkObjectManager(objpath) {
 			if (f.numElements > 1) {
 				var _u = "";
 				for ( var i = 0; i < f.numElements; i++) {
-					_u += u + "(" + f.name + "Idx" + i + ")";
+					_u += u + "(" + f.name.replace("_", "") + "Idx" + i + ")";
 				}
 				u = _u;
 			} else {
-				u = u + "(" + f.name + ")";
+				u = u + "(" + f.name.replace("_", "") + ")";
 			}
 			unpackstr += u;
 		});
