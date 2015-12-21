@@ -400,7 +400,8 @@ function UavtalkObjectManager(objpath) {
 		var out = {};
 		var unpacked = bufferpack.unpack(objdef.unpackstr, data);
 		if (!unpacked) {
-			console.log("Couldn't unpack " + objdef.name);
+			console.log("Couldn't unpack");
+			console.log(objdef);
 			return null;
 		}
 		return unpacked;
@@ -413,7 +414,8 @@ function UavtalkObjectManager(objpath) {
 		}
 		var packed = bufferpack.pack(objdef.unpackstr, values);
 		if (!packed) {
-			console.log("Couldn't pack " + objdef.name);
+			console.log("Couldn't pack");
+			console.log(objdef);
 			return null;
 		}
 		return packed;
