@@ -30,8 +30,8 @@ var types = {
 	0x0 : "OBJ",
 	0x1 : "OBJ_REQ",
 	0x2 : "OBJ_ACK",
-	0x3 : "OBJ_ACK",
-	0x4 : "OBJ_NAK",
+	0x3 : "ACK",
+	0x4 : "NAK",
 };
 
 var CrcTable = [ 0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15, 0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 0x2d, 0x70, 0x77, 0x7e, 0x79, 0x6c, 0x6b, 0x62, 0x65, 0x48, 0x4f, 0x46, 0x41, 0x54, 0x53,
@@ -425,6 +425,7 @@ function UavtalkObjectManager(objpath) {
 
 	var warned = {};
 	var request_id_map = {};
+	var update_id_map = {};
 
 	var self = {
 		init : init,
@@ -439,6 +440,14 @@ function UavtalkObjectManager(objpath) {
 			}
 			var obj = uavobjects[packet.object_id];
 			if (!obj) {
+				return;
+			}
+			if (packet.type == "ACK") {
+				if (update_id_map[packet.object_id]) {
+					var callback = request_id_map[packet.object_id];
+					update_id_map[packet.object_id] = null;
+					callback(true);
+				}
 				return;
 			}
 			var instance = null;
@@ -488,6 +497,10 @@ function UavtalkObjectManager(objpath) {
 			return uavobject_name_index[object_name];
 		},
 		getObject : function(object_id, callback, blnRenew) {
+			if (self.output_stream == null) {
+				callback(false);
+				return;
+			}
 			if (typeof (object_id) == 'string') {
 				object_id = uavobject_name_index[object_id];
 			}
@@ -499,13 +512,15 @@ function UavtalkObjectManager(objpath) {
 				callback(objdef.instance);
 			} else {
 				if (request_id_map[object_id] == null) {
-					request_id_map[object_id] = [ callback ];
+					var done = false;
+					request_id_map[object_id] = [ function(res) {
+						done = true;
+						callback(res);
+					} ];
 					var request_func = function() {
-						if (self.output_stream) {
-							self.output_stream(packetHandler.getRequestPacket(object_id));
-						}
+						self.output_stream(packetHandler.getRequestPacket(object_id));
 						setTimeout(function() {
-							if (request_id_map[object_id] != null) {
+							if (!done) {
 								request_func();
 							}
 						}, 1000);
@@ -517,11 +532,41 @@ function UavtalkObjectManager(objpath) {
 			}
 			return objdef.instance;
 		},
-		updateObject : function(obj) {
-			var data = self.serialize(obj);
-			if (self.output_stream) {
-				self.output_stream(packetHandler.getPacket(TYPE_OBJ_ACK, obj.object_id, data));
+		updateObject : function(obj, callback) {
+			if (self.output_stream == null) {
+				callback(false);
+				return;
 			}
+			var data = self.serialize(obj);
+			var phase = 0;
+			var done = false;
+			var update_func = function() {
+				switch (phase) {
+				case 0:
+					if (update_id_map[obj.object_id] == null) {
+						update_id_map[obj.object_id] = function(res) {
+							done = true;
+							callback(res);
+						};
+						phase = 1;
+						update_func();
+					} else {
+						setTimeout(function() {
+							update_func();
+						}, 100);
+					}
+					break;
+				case 1:
+					self.output_stream(packetHandler.getPacket(TYPE_OBJ_ACK, obj.object_id, data));
+					setTimeout(function() {
+						if (!done) {
+							request_func();
+						}
+					}, 1000);
+					break;
+				}
+			}
+			update_func();
 		}
 	}
 	return self;
