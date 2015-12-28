@@ -521,6 +521,7 @@ function UavtalkObjectManager(objpath) {
 						self.output_stream(packetHandler.getRequestPacket(object_id));
 						setTimeout(function() {
 							if (!done) {
+								console.log("request_func timeout");
 								request_func();
 							}
 						}, 1000);
@@ -561,7 +562,8 @@ function UavtalkObjectManager(objpath) {
 					self.output_stream(packetHandler.getPacket(TYPE_OBJ_ACK, obj.object_id, data));
 					setTimeout(function() {
 						if (!done) {
-							request_func();
+							console.log("update_func timeout");
+							update_func();
 						}
 					}, 1000);
 					break;
