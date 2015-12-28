@@ -520,7 +520,7 @@ function UavtalkObjectManager(objpath) {
 		updateObject : function(obj) {
 			var data = self.serialize(obj);
 			if (self.output_stream) {
-				self.output_stream(packetHandler.getPacket(TYPE_OBJ, obj.object_id, data));
+				self.output_stream(packetHandler.getPacket(TYPE_OBJ_ACK, obj.object_id, data));
 			}
 		}
 	}
