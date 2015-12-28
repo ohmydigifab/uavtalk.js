@@ -444,7 +444,7 @@ function UavtalkObjectManager(objpath) {
 			}
 			if (packet.type == "ACK") {
 				if (update_id_map[packet.object_id]) {
-					var callback = request_id_map[packet.object_id];
+					var callback = update_id_map[packet.object_id];
 					update_id_map[packet.object_id] = null;
 					callback(true);
 				}
@@ -546,7 +546,8 @@ function UavtalkObjectManager(objpath) {
 					if (update_id_map[obj.object_id] == null) {
 						update_id_map[obj.object_id] = function(res) {
 							done = true;
-							callback(res);
+							if (callback)
+								callback(res);
 						};
 						phase = 1;
 						update_func();
