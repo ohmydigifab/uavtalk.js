@@ -426,6 +426,7 @@ function UavtalkObjectManager(objpath) {
 	var warned = {};
 	var request_id_map = {};
 	var update_id_map = {};
+	var receive_id_map = {};
 
 	var self = {
 		init : init,
@@ -459,6 +460,12 @@ function UavtalkObjectManager(objpath) {
 			if (request_id_map[packet.object_id]) {
 				var callback_ary = request_id_map[packet.object_id];
 				request_id_map[packet.object_id] = null;
+				callback_ary.forEach(function(callback) {
+					callback(instance);
+				});
+			}
+			if (receive_id_map[packet.object_id]) {
+				var callback_ary = receive_id_map[packet.object_id];
 				callback_ary.forEach(function(callback) {
 					callback(instance);
 				});
@@ -570,6 +577,13 @@ function UavtalkObjectManager(objpath) {
 				}
 			}
 			update_func();
+		},
+		setRecieveCallback : function(object_id, callback) {
+			if (receive_id_map[object_id] == null) {
+				receive_id_map[object_id] = [ callback ];
+			} else {
+				receive_id_map[object_id].push(callback);
+			}
 		}
 	}
 	return self;
