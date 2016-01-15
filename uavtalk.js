@@ -579,6 +579,9 @@ function UavtalkObjectManager(objpath) {
 			update_func();
 		},
 		setReceiveCallback : function(object_id, callback) {
+			if (typeof (object_id) == 'string') {
+				object_id = uavobject_name_index[object_id];
+			}
 			if (receive_id_map[object_id] == null) {
 				receive_id_map[object_id] = [ callback ];
 			} else {
