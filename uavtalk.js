@@ -578,7 +578,7 @@ function UavtalkObjectManager(objpath) {
 			}
 			update_func();
 		},
-		setRecieveCallback : function(object_id, callback) {
+		setReceiveCallback : function(object_id, callback) {
 			if (receive_id_map[object_id] == null) {
 				receive_id_map[object_id] = [ callback ];
 			} else {
