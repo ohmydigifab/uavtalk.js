@@ -1,7 +1,7 @@
 {
   "name": "uavtalk",
   "description": "Module to talk with openpilot board in uavtalk protocol",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "keywords": [
     "uavtalk",
     "uav",
@@ -29,6 +29,6 @@
     "url": "https://github.com/ohmydigifab/uavtalk.js/issues"
   },
   "readme": "ERROR: No README data found!",
-  "_id": "uavtalk-js@0.0.3",
+  "_id": "uavtalk-js@0.0.4",
   "_from": "uavtalk-js@>0.0.1"
 }
